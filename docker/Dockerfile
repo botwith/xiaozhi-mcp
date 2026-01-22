@@ -1,4 +1,8 @@
 # 使用 Python 3.12 作为基础镜像
+# 如果 Docker Hub 访问受限，可以：
+# 1. 配置 Docker 使用镜像加速器（推荐）
+# 2. 或使用阿里云镜像: registry.cn-hangzhou.aliyuncs.com/acs/python:3.12-slim
+# 3. 或手动拉取镜像: docker pull python:3.12-slim
 FROM python:3.12-slim
 
 # 设置工作目录

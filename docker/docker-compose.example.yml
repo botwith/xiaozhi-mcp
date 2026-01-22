@@ -3,6 +3,7 @@ services:
     build:
       context: ..
       dockerfile: docker/Dockerfile
+      platform: linux/amd64  # 指定平台架构，避免平台不匹配错误
     container_name: xiaozhi-mcp
     restart: unless-stopped
     volumes:

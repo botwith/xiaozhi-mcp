@@ -64,6 +64,40 @@ docker-compose -f docker-compose.yml logs -f
 docker-compose -f docker-compose.yml down
 ```
 
+## 故障排除
+
+### Docker Hub 访问问题
+
+如果遇到 `Get "https://registry-1.docker.io/v2/": EOF` 错误，说明无法访问 Docker Hub。
+
+**解决方案 1：配置 Docker 镜像加速器（推荐）**
+
+对于 OrbStack/Docker Desktop，可以在设置中配置镜像加速器：
+- 阿里云：`https://your-id.mirror.aliyuncs.com`
+- 腾讯云：`https://mirror.ccs.tencentyun.com`
+- 网易：`https://hub-mirror.c.163.com`
+
+**解决方案 2：手动拉取基础镜像**
+
+```bash
+# 使用镜像加速器拉取
+docker pull registry.cn-hangzhou.aliyuncs.com/acs/python:3.12-slim
+docker tag registry.cn-hangzhou.aliyuncs.com/acs/python:3.12-slim python:3.12-slim
+
+# 然后再构建
+docker build -f docker/Dockerfile -t xiaozhi-mcp .
+```
+
+**解决方案 3：使用代理**
+
+如果已配置代理，确保 Docker 可以使用代理：
+```bash
+# 设置代理环境变量
+export HTTP_PROXY=http://your-proxy:port
+export HTTPS_PROXY=http://your-proxy:port
+docker build -f docker/Dockerfile -t xiaozhi-mcp .
+```
+
 ## 详细文档
 
 更多信息请参考：
