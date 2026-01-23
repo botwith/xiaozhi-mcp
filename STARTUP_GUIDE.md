@@ -7,6 +7,8 @@
 ### 使用方法
 
 ```bash
+# === 服务管理 ===
+
 # 启动服务
 ./xiaozhi-mcp.sh start
 
@@ -19,8 +21,28 @@
 # 查看状态
 ./xiaozhi-mcp.sh status
 
-# 查看实时日志
+# === 日志查看 ===
+
+# 实时查看日志（Ctrl+C 退出）
 ./xiaozhi-mcp.sh logs
+
+# 查看最近 N 行应用日志
+./xiaozhi-mcp.sh log 100          # 查看最近 100 行
+./xiaozhi-mcp.sh log              # 默认查看最近 50 行
+
+# 查看错误日志
+./xiaozhi-mcp.sh error-logs       # 查看错误日志
+./xiaozhi-mcp.sh error-logs 20   # 查看最近 20 行错误
+
+# 搜索日志
+./xiaozhi-mcp.sh search-logs "ERROR"        # 搜索 ERROR 关键词
+./xiaozhi-mcp.sh search-logs "connecting"   # 搜索连接相关日志
+
+# 查看日志统计信息
+./xiaozhi-mcp.sh log-stats         # 查看日志文件大小、行数
+
+# 清空日志
+./xiaozhi-mcp.sh clear-logs        # 清空所有日志（需确认）
 ```
 
 ### 特点
@@ -91,6 +113,61 @@ sudo journalctl -u xiaozhi-mcp -n 50
 - ✅ 使用 journalctl 统一管理日志
 - ✅ 安全性增强（NoNewPrivileges, PrivateTmp）
 - ✅ 标准的 Linux 服务管理方式
+
+---
+
+## 日志功能详解
+
+### 实时日志监控
+```bash
+./xiaozhi-mcp.sh logs
+```
+- 服务运行时：实时跟踪日志（按 Ctrl+C 退出）
+- 服务未运行时：显示最近 50 行日志
+
+### 快速查看日志
+```bash
+# 查看应用日志（默认 50 行）
+./xiaozhi-mcp.sh log
+
+# 查看最近 100 行
+./xiaozhi-mcp.sh log 100
+```
+
+### 错误日志
+```bash
+# 查看错误日志
+./xiaozhi-mcp.sh error-logs
+
+# 查看最近 20 行错误
+./xiaozhi-mcp.sh error-logs 20
+```
+
+### 日志搜索
+```bash
+# 搜索关键词（不区分大小写）
+./xiaozhi-mcp.sh search-logs "timeout"
+./xiaozhi-mcp.sh search-logs "connection"
+./xiaozhi-mcp.sh search-logs "ERROR"
+```
+- 自动搜索应用日志和错误日志
+- 高亮显示匹配的关键词
+
+### 日志统计
+```bash
+./xiaozhi-mcp.sh log-stats
+```
+显示：
+- 应用日志文件路径、大小、行数
+- 错误日志文件路径、大小、行数
+
+### 清空日志
+```bash
+./xiaozhi-mcp.sh clear-logs
+```
+- 如果服务正在运行，会先停止
+- 清空 `app.log` 和 `app.error.log`
+- 需要输入 `yes` 确认
 
 ---
 
