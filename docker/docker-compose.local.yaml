@@ -9,6 +9,8 @@ services:
     volumes:
       # 挂载配置文件目录，方便修改配置而不需要重建镜像
       - ../mcp_config.yaml:/app/mcp_config.yaml:ro
+      # 挂载数据目录，用于持久化存储 contacts.db 和 todos.db 等数据文件
+      - ../data:/app/data
     environment:
       # 可以通过环境变量覆盖配置
       # MCP_CONFIG: /app/mcp_config.yaml

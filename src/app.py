@@ -85,6 +85,9 @@ async def connect_to_server(uri, target):
 
             # Start server process (built from CLI arg or config)
             cmd, env = build_server_command(target)
+            # Get the project root directory (where pyproject.toml is located)
+            # This ensures uv run can find the project and virtual environment
+            project_root = os.getcwd()
             process = subprocess.Popen(
                 cmd,
                 stdin=subprocess.PIPE,
@@ -92,7 +95,8 @@ async def connect_to_server(uri, target):
                 stderr=subprocess.PIPE,
                 encoding='utf-8',
                 text=True,
-                env=env
+                env=env,
+                cwd=project_root  # Set working directory so uv run can find the project
             )
             logger.info(f"[{target}] Started server process: {' '.join(cmd)}")
             
@@ -430,6 +434,27 @@ def build_server_command(target=None):
             args = entry.get("args") or []
             if not command:
                 raise RuntimeError(f"Server '{target}' is missing 'command'")
+            
+            # If command is 'uv', replace it with the virtual environment Python interpreter
+            # This ensures the subprocess uses the correct environment with all dependencies
+            if command == "uv" and len(args) >= 2 and args[0] == "run" and args[1] == "python":
+                # Use the virtual environment Python directly
+                # In Docker, the venv is typically at /app/.venv/bin/python
+                venv_python = os.path.join(os.getcwd(), ".venv", "bin", "python")
+                if os.path.exists(venv_python):
+                    # Replace 'uv run python' with direct venv python path
+                    new_args = args[2:]  # Get the script path and remaining args
+                    return [venv_python] + new_args, child_env
+                else:
+                    # Fallback: try to find Python in common venv locations
+                    for venv_path in [".venv", "venv", ".env"]:
+                        venv_python = os.path.join(os.getcwd(), venv_path, "bin", "python")
+                        if os.path.exists(venv_python):
+                            new_args = args[2:]
+                            return [venv_python] + new_args, child_env
+                    # If no venv found, log warning but continue with original command
+                    logger.warning(f"[{target}] Virtual environment not found, using original command: {command}")
+            
             return [command, *args], child_env
 
         if typ in ("sse", "http", "streamablehttp"):

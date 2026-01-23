@@ -8,10 +8,10 @@ license = {text = "MIT"}
 dependencies = [
     "python-dotenv>=1.2.1",
     "websockets>=16.0",
-    "mcp>=1.25.0",
+    "mcp>=1.25.0,<2.0.0",
     "pydantic>=2.12.5",
     "mcp-proxy>=0.11.0",
-    "fastmcp>=2.14.3",
+    "fastmcp>=2.14.3,<3.0.0",
     "httpx>=0.28.1",
     "yfinance>=1.0",
     "pyyaml>=6.0.3",
@@ -25,4 +25,6 @@ build-backend = "hatchling.build"
 packages = ["src"]
 
 [tool.uv]
+# Note: tool.uv.dev-dependencies is deprecated, but kept for backward compatibility
+# Use dependency-groups.dev instead for new projects
 dev-dependencies = []

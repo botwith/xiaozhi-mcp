@@ -16,7 +16,7 @@ xiaozhi-mcp/
 ├── docker/
 │   ├── Dockerfile              # Docker image definition
 │   ├── docker-compose.example.yml  # Docker Compose example
-│   ├── build-and-push-acr.sh   # Build and push script
+│   ├── build-and-push.sh   # Build and push script
 │   ├── .env.example            # Docker env example
 │   ├── .env                    # Docker env (not in git)
 │   └── .dockerignore           # Docker ignore file
@@ -64,7 +64,7 @@ xiaozhi-mcp/
 
 - **`docker/docker-compose.example.yml`**: Example Docker Compose configuration for easy deployment.
 
-- **`docker/build-and-push-acr.sh`**: Script for building and pushing Docker images to Aliyun Container Registry.
+- **`docker/build-and-push.sh`**: Script for building and pushing Docker images to container registries (defaults to ACR, configurable via environment variables).
 
 - **`docker/.env.example`**: Example Docker environment configuration file.
 

@@ -5,7 +5,6 @@ import logging
 import subprocess
 import platform
 import re
-import urllib.parse
 from typing import Optional
 
 logger = logging.getLogger('MacAppLauncher')
@@ -163,94 +162,6 @@ def normalize_phone_number(phone: str) -> str:
     phone = re.sub(r'[\s\-\(\)\.]', '', phone)
     return phone
 
-def send_email(to: str, subject: Optional[str] = None, body: Optional[str] = None) -> dict:
-    """Open default email client with pre-filled recipient, subject, and body.
-    Note: This does NOT actually send the email, it only opens the email client for the user to review and send manually.
-    For actually sending emails via SMTP, use the send_email tool from email_tool.py instead.
-    """
-    if platform.system() != 'Darwin':
-        return {
-            "success": False,
-            "message": "此工具仅在 macOS 系统上可用",
-            "error": "Not running on macOS"
-        }
-    
-    try:
-        # Extract email address if format is "Display Name <email@example.com>"
-        # Otherwise use the input as-is
-        email_address = to
-        if '<' in to and '>' in to:
-            # Extract email from "Display Name <email@example.com>" format
-            match = re.search(r'<([^>]+)>', to)
-            if match:
-                email_address = match.group(1)
-        
-        # Validate email format (basic check)
-        if not re.match(r'^[^\s@]+@[^\s@]+\.[^\s@]+$', email_address):
-            return {
-                "success": False,
-                "message": f"无效的邮箱地址格式: {to}",
-                "error": "Invalid email address format"
-            }
-        
-        # Build mailto URL
-        mailto_params = {}
-        if subject:
-            mailto_params['subject'] = subject
-        if body:
-            mailto_params['body'] = body
-        
-        # URL encode the email address and parameters
-        encoded_email = urllib.parse.quote(email_address, safe='')
-        
-        # Construct mailto URL
-        if mailto_params:
-            query_string = urllib.parse.urlencode(mailto_params, quote_via=urllib.parse.quote)
-            mailto_url = f"mailto:{encoded_email}?{query_string}"
-        else:
-            mailto_url = f"mailto:{encoded_email}"
-        
-        # Open mailto URL using 'open' command
-        result = subprocess.run(
-            ["open", mailto_url],
-            capture_output=True,
-            text=True,
-            timeout=10
-        )
-        
-        if result.returncode == 0:
-            logger.info(f"Successfully opened email client for: {email_address}")
-            return {
-                "success": True,
-                "message": f"正在打开邮件客户端，收件人: {to}" + (f"，主题: {subject}" if subject else ""),
-                "to": to,
-                "email_address": email_address,
-                "subject": subject,
-                "body": body
-            }
-        else:
-            error_msg = result.stderr.strip() or result.stdout.strip() or "Unknown error"
-            logger.error(f"Failed to open email client for {email_address}: {error_msg}")
-            return {
-                "success": False,
-                "message": f"打开邮件客户端失败: {error_msg}",
-                "error": error_msg
-            }
-    except subprocess.TimeoutExpired:
-        logger.error(f"Timeout while opening email client for: {to}")
-        return {
-            "success": False,
-            "message": f"打开邮件客户端超时",
-            "error": "Timeout"
-        }
-    except Exception as e:
-        logger.error(f"Error opening email client for {to}: {e}")
-        return {
-            "success": False,
-            "message": f"打开邮件客户端时发生错误: {str(e)}",
-            "error": str(e)
-        }
-
 def call_phone(phone_number: str) -> dict:
     """Make a phone call to the specified number."""
     if platform.system() != 'Darwin':
@@ -400,32 +311,6 @@ def call_phone_number(phone_number: str) -> dict:
         dict: Result with success status and message.
     """
     return call_phone(phone_number)
-
-@mcp.tool()
-def open_email_client(to: str, subject: Optional[str] = None, body: Optional[str] = None) -> dict:
-    """打开默认邮件客户端撰写邮件（不直接发送，需要用户手动发送）。与 send_email 工具的区别：此工具只是打开邮件客户端并预填信息，不会实际发送邮件；send_email 工具会通过 SMTP 直接发送邮件。
-    
-    使用场景：
-    - 需要用户确认后再发送
-    - 需要添加附件
-    - 需要修改邮件内容
-    - 使用系统默认邮件客户端
-    
-    Examples:
-    - open_email_client("user@example.com")
-    - open_email_client("user@example.com", subject="Hello")
-    - open_email_client("user@example.com", subject="Hello", body="This is the email body")
-    - open_email_client("张三 <zhangsan@example.com>", subject="会议通知", body="明天下午3点开会")
-    
-    Args:
-        to: 收件人邮箱地址。可以是简单格式（如 "user@example.com"）或带显示名称（如 "张三 <zhangsan@example.com>"）。
-        subject: 可选。邮件主题。
-        body: 可选。邮件正文内容。
-    
-    Returns:
-        dict: 包含成功状态和消息的结果。
-    """
-    return send_email(to, subject, body)
 
 @mcp.tool()
 def open_chrome(site: Optional[str] = None) -> dict:

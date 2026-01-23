@@ -138,10 +138,13 @@ docker push ${REGISTRY}/${NAMESPACE}/xiaozhi-mcp:1.0.0
 
 **使用提供的脚本：**
 ```bash
-# 使用 build-and-push-acr.sh 脚本（从项目根目录）
+# 使用 build-and-push.sh 脚本（从项目根目录）
 # 脚本会自动使用 docker/Dockerfile 和 docker/.env
-./docker/build-and-push-acr.sh 1.0.0
+./docker/build-and-push.sh 1.0.0
 ```
+
+**使用 GitHub Actions（推荐）：**
+项目包含 GitHub Actions 工作流，会在推送到 main/dev 分支或创建标签时自动构建和推送 Docker 镜像。在 GitHub 仓库设置中配置 Secrets 即可。详情请参阅 [.github/workflows/README.md](.github/workflows/README.md)。
 
 更多 Docker 构建和推送选项，请参阅 [docs/DOCKER_BUILD_PUSH.md](docs/DOCKER_BUILD_PUSH.md)。
 

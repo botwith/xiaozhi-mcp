@@ -51,11 +51,11 @@ docker push crpi-lwoxnalpjm9a03w9.cn-shanghai.personal.cr.aliyuncs.com/oj8k/xiao
 
 ### 使用脚本（推荐）
 
-使用提供的 `docker/build-and-push-acr.sh` 脚本（脚本中已配置实际地址）：
+使用提供的 `docker/build-and-push.sh` 脚本（脚本中已配置实际地址）：
 
 ```bash
 # 从项目根目录运行
-./docker/build-and-push-acr.sh 1.0.0
+./docker/build-and-push.sh 1.0.0
 ```
 
 详细说明请参考 [推送到阿里云容器镜像服务](#推送到阿里云容器镜像服务acr) 章节。
@@ -99,22 +99,22 @@ docker login
 
 ```bash
 # 格式：docker tag <本地镜像名> <Docker Hub用户名>/<镜像名>:<标签>
-docker tag xiaozhi-mcp:latest your-username/xiaozhi-mcp:latest
-docker tag xiaozhi-mcp:1.0.0 your-username/xiaozhi-mcp:1.0.0
+docker tag xiaozhi-mcp:latest shagua/xiaozhi-mcp:latest
+docker tag xiaozhi-mcp:1.0.0 shagua/xiaozhi-mcp:1.0.0
 ```
 
 ### 3. 推送镜像
 
 ```bash
 # 推送单个标签
-docker push your-username/xiaozhi-mcp:latest
+docker push shagua/xiaozhi-mcp:latest
 
 # 推送多个标签
-docker push your-username/xiaozhi-mcp:latest
-docker push your-username/xiaozhi-mcp:1.0.0
+docker push shagua/xiaozhi-mcp:latest
+docker push shagua/xiaozhi-mcp:1.0.0
 
 # 或者推送所有标签
-docker push your-username/xiaozhi-mcp --all-tags
+docker push shagua/xiaozhi-mcp --all-tags
 ```
 
 ## 推送到阿里云容器镜像服务（ACR）
@@ -178,7 +178,7 @@ docker push crpi-lwoxnalpjm9a03w9.cn-shanghai.personal.cr.aliyuncs.com/oj8k/xiao
 
 ### 一键构建和推送脚本
 
-项目提供了 `build-and-push-acr.sh` 脚本（已配置实际地址），你也可以根据需要进行修改：
+项目提供了 `build-and-push.sh` 脚本（已配置实际地址），你也可以根据需要进行修改：
 
 ```bash
 #!/bin/bash
@@ -225,14 +225,14 @@ fi
 ```bash
 # 从项目根目录运行
 # 推送 latest 和指定版本
-./docker/build-and-push-acr.sh 1.0.0
+./docker/build-and-push.sh 1.0.0
 
 # 只推送 dev 和日期版本（使用默认值）
-./docker/build-and-push-acr.sh
+./docker/build-and-push.sh
 ```
 
 **注意：** 
-- 脚本位于 `docker/build-and-push-acr.sh`
+- 脚本位于 `docker/build-and-push.sh`
 - 脚本会自动使用 `docker/Dockerfile` 和 `docker/.env`
 - 配置文件位于 `docker/.env`（不会被提交到 git）
 - 示例配置文件位于 `docker/.env.example`
@@ -318,8 +318,8 @@ docker buildx inspect --bootstrap
 ```bash
 docker buildx build \
   --platform linux/amd64,linux/arm64 \
-  -t your-username/xiaozhi-mcp:latest \
-  -t your-username/xiaozhi-mcp:1.0.0 \
+  -t shagua/xiaozhi-mcp:latest \
+  -t shagua/xiaozhi-mcp:1.0.0 \
   --push .
 ```
 
@@ -367,7 +367,7 @@ docker buildx build \
 # 配置变量
 IMAGE_NAME="xiaozhi-mcp"
 VERSION="${1:-latest}"
-DOCKER_USERNAME="${DOCKER_USERNAME:-your-username}"
+DOCKER_USERNAME="${DOCKER_USERNAME:-shagua}"
 REGISTRY="${REGISTRY:-docker.io}"  # 或 registry.example.com
 
 # 构建镜像（从项目根目录）
@@ -396,7 +396,7 @@ chmod +x docker/build-and-push.sh
 
 ### 阿里云容器镜像服务专用脚本
 
-项目提供了 `build-and-push-acr.sh` 脚本（已配置实际地址），你也可以根据需要进行修改：
+项目提供了 `build-and-push.sh` 脚本（已配置实际地址），你也可以根据需要进行修改：
 
 ```bash
 #!/bin/bash
@@ -443,10 +443,10 @@ fi
 ```bash
 # 从项目根目录运行
 # 推送 dev、日期版本和指定版本
-./docker/build-and-push-acr.sh 1.0.0
+./docker/build-and-push.sh 1.0.0
 
 # 只推送 dev 和日期版本（使用默认值）
-./docker/build-and-push-acr.sh
+./docker/build-and-push.sh
 ```
 
 ## CI/CD 集成
@@ -594,7 +594,7 @@ variables:
   IMAGE_NAME: xiaozhi-mcp
   FULL_IMAGE_NAME: ${REGISTRY}/${NAMESPACE}/${IMAGE_NAME}
 
-build-and-push-acr:
+build-and-push:
   stage: build
   image: docker:latest
   services:
@@ -756,7 +756,7 @@ docker login crpi-lwoxnalpjm9a03w9.cn-shanghai.personal.cr.aliyuncs.com
 docker info | grep Username
 
 # 3. 构建和推送
-./build-and-push-acr.sh 1.0.0
+./build-and-push.sh 1.0.0
 ```
 
 ## 相关文档

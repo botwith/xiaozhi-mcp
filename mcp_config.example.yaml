@@ -15,22 +15,28 @@ mcp:
     local-stdio-calculator:
       enabled: true
       type: stdio
-      command: python
+      command: uv
       args:
+        - run
+        - python
         - src/mcp/tools/calculator.py
     
     local-stdio-stock:
       enabled: true
       type: stdio
-      command: python
+      command: uv
       args:
+        - run
+        - python
         - src/mcp/tools/stock.py
     
     local-stdio-email:
       enabled: true
       type: stdio
-      command: python
+      command: uv
       args:
+        - run
+        - python
         - src/mcp/tools/email_tool.py
       smtp:
         host: smtp.example.com
@@ -43,31 +49,39 @@ mcp:
     local-stdio-netease-music:
       enabled: true
       type: stdio
-      command: python
+      command: uv
       args:
+        - run
+        - python
         - src/mcp/tools/netease_music.py
     
     local-stdio-mac-app-launcher:
       enabled: true
       type: stdio
-      command: python
+      command: uv
       args:
+        - run
+        - python
         - src/mcp/tools/mac_app_launcher.py
       comment: Mac应用程序启动器 - 支持打开Chrome、微信、计算器、同花顺、电话、FaceTime等
     
     local-stdio-contacts:
       enabled: true
       type: stdio
-      command: python
+      command: uv
       args:
+        - run
+        - python
         - src/mcp/tools/contacts.py
       comment: 联系人管理MCP - 支持存储和管理联系人信息，包括电话、邮箱、微信ID等，支持场景备注（个人、办公等）
     
     local-stdio-todo:
       enabled: true
       type: stdio
-      command: python
+      command: uv
       args:
+        - run
+        - python
         - src/mcp/tools/todo.py
       comment: 待办事项管理MCP - 支持创建、读取、更新、删除待办事项，以及设置完成/未完成状态
     
@@ -79,7 +93,7 @@ mcp:
         Authorization: Bearer ${mcp.modelscope.api-key}
       comment: 热闻MCP服务 - 请将YOUR_ENDPOINT_ID替换为实际的endpoint_id，API key使用公共配置
     
-    StockBaseInfoMCP:
+    stock-base-info-mcp:
       enabled: false
       type: sse
       url: https://mcp.api-inference.modelscope.net/YOUR_ENDPOINT_ID/sse

@@ -142,10 +142,13 @@ docker push ${REGISTRY}/${NAMESPACE}/xiaozhi-mcp:1.0.0
 
 **Using the provided script:**
 ```bash
-# Use the build-and-push-acr.sh script (from project root)
+# Use the build-and-push.sh script (from project root)
 # Script will automatically use docker/Dockerfile and docker/.env
-./docker/build-and-push-acr.sh 1.0.0
+./docker/build-and-push.sh 1.0.0
 ```
+
+**Using GitHub Actions (Recommended):**
+The project includes a GitHub Actions workflow that automatically builds and pushes Docker images on push to main/dev branches or when tags are created. Configure secrets in your GitHub repository settings. See [.github/workflows/README.md](.github/workflows/README.md) for details.
 
 For more Docker build and push options, see [docs/DOCKER_BUILD_PUSH.md](docs/DOCKER_BUILD_PUSH.md).
 

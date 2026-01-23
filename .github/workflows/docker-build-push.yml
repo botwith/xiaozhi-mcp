@@ -1,0 +1,183 @@
+name: Build and Push Docker Image
+
+on:
+  push:
+    branches:
+      - main
+      - dev
+    tags:
+      - 'v*'
+  pull_request:
+    branches:
+      - main
+      - dev
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version tag (e.g., 1.0.0)'
+        required: false
+        default: 'dev'
+      push_latest:
+        description: 'Push with latest tag'
+        required: false
+        default: 'false'
+        type: choice
+        options:
+          - 'true'
+          - 'false'
+
+env:
+  IMAGE_NAME: xiaozhi-mcp
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          # GitHub Container Registry (GHCR) - Always enabled
+          - registry: ghcr.io
+            namespace: ${{ github.repository_owner }}
+            login_method: ghcr
+            enabled: true
+          # Docker Hub
+          - registry: docker.io
+            namespace: ${{ secrets.DOCKERHUB_USERNAME || 'shagua' }}
+            login_method: dockerhub
+            enabled: ${{ secrets.DOCKERHUB_USERNAME != '' }}
+          # Aliyun Container Registry (ACR)
+          - registry: ${{ secrets.ACR_REGISTRY || 'crpi-lwoxnalpjm9a03w9.cn-shanghai.personal.cr.aliyuncs.com' }}
+            namespace: ${{ secrets.ACR_NAMESPACE || 'oj8k' }}
+            login_method: acr
+            enabled: ${{ secrets.ACR_USERNAME != '' }}
+          # Google Container Registry (GCR)
+          - registry: gcr.io
+            namespace: ${{ secrets.GCR_PROJECT_ID || 'your-project-id' }}
+            login_method: gcr
+            enabled: ${{ secrets.GCR_PROJECT_ID != '' }}
+          # AWS ECR
+          - registry: ${{ secrets.ECR_REGISTRY || 'your-account.dkr.ecr.us-east-1.amazonaws.com' }}
+            namespace: ''
+            login_method: ecr
+            enabled: ${{ secrets.AWS_ACCESS_KEY_ID != '' }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Determine version and generate tags
+        id: meta
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            VERSION="${{ github.event.inputs.version }}"
+            PUSH_LATEST="${{ github.event.inputs.push_latest }}"
+          elif [ "${{ github.event_name }}" = "push" ] && [[ "${{ github.ref }}" == refs/tags/* ]]; then
+            VERSION="${GITHUB_REF#refs/tags/v}"
+            PUSH_LATEST="true"
+          else
+            VERSION="dev"
+            PUSH_LATEST="false"
+          fi
+          
+          DATE_VERSION="0.0.$(date +%y%m%d)"
+          
+          # Build full image name
+          if [ -n "${{ matrix.namespace }}" ]; then
+            IMAGE_FULL="${{ matrix.registry }}/${{ matrix.namespace }}/${{ env.IMAGE_NAME }}"
+          else
+            IMAGE_FULL="${{ matrix.registry }}/${{ env.IMAGE_NAME }}"
+          fi
+          
+          # Build tags list
+          TAGS="${IMAGE_FULL}:${VERSION}"
+          TAGS="${TAGS},${IMAGE_FULL}:${DATE_VERSION}"
+          
+          if [ "$VERSION" != "dev" ]; then
+            TAGS="${TAGS},${IMAGE_FULL}:dev"
+          fi
+          
+          if [ "$PUSH_LATEST" = "true" ]; then
+            TAGS="${TAGS},${IMAGE_FULL}:latest"
+          fi
+          
+          echo "version=${VERSION}" >> $GITHUB_OUTPUT
+          echo "tags=${TAGS}" >> $GITHUB_OUTPUT
+          echo "push_latest=${PUSH_LATEST}" >> $GITHUB_OUTPUT
+          echo "image_full=${IMAGE_FULL}" >> $GITHUB_OUTPUT
+
+      - name: Login to GitHub Container Registry
+        if: matrix.login_method == 'ghcr' && matrix.enabled == 'true'
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Login to Docker Hub
+        if: matrix.login_method == 'dockerhub' && matrix.enabled == 'true'
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Login to Aliyun Container Registry
+        if: matrix.login_method == 'acr' && matrix.enabled == 'true'
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ matrix.registry }}
+          username: ${{ secrets.ACR_USERNAME }}
+          password: ${{ secrets.ACR_PASSWORD }}
+
+      - name: Login to Google Container Registry
+        if: matrix.login_method == 'gcr' && matrix.enabled == 'true'
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ matrix.registry }}
+          username: _json_key
+          password: ${{ secrets.GCR_SERVICE_ACCOUNT_KEY }}
+
+      - name: Login to AWS ECR
+        if: matrix.login_method == 'ecr' && matrix.enabled == 'true'
+        id: ecr-login
+        uses: aws-actions/amazon-ecr-login@v2
+        with:
+          registries: ${{ matrix.registry }}
+
+      - name: Determine Dockerfile
+        id: dockerfile
+        run: |
+          # Use Dockerfile.acr if ACR is enabled and Docker Hub access might be restricted
+          if [ "${{ matrix.login_method }}" = "acr" ]; then
+            echo "dockerfile=docker/Dockerfile.acr" >> $GITHUB_OUTPUT
+          else
+            echo "dockerfile=docker/Dockerfile" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Build and push Docker image
+        if: matrix.enabled == 'true'
+        id: build
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: ${{ steps.dockerfile.outputs.dockerfile }}
+          platforms: linux/amd64,linux/arm64
+          push: ${{ github.event_name != 'pull_request' }}
+          tags: ${{ steps.meta.outputs.tags }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Image info
+        if: matrix.enabled == 'true' && github.event_name != 'pull_request'
+        run: |
+          echo "✅ Successfully built and pushed:"
+          echo "${{ steps.meta.outputs.tags }}" | tr ',' '\n' | sed 's/^/  - /'
+          echo ""
+          echo "Image digest: ${{ steps.build.outputs.digest }}"
