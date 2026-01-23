@@ -2,7 +2,8 @@
 # xiaozhi-mcp service script for Ubuntu
 # Usage: ./xiaozhi-mcp.sh {start|stop|restart|status}
 
-PROJECT_DIR="/home/luca/_projects/ai/xiaozhi/xiaozhi-mcp"
+# Auto-detect project directory (where this script is located)
+PROJECT_DIR="$(cd "$(dirname "$0")" && pwd)"
 PID_FILE="$PROJECT_DIR/.xiaozhi-mcp.pid"
 LOG_FILE="$PROJECT_DIR/app.log"
 ERROR_LOG="$PROJECT_DIR/app.error.log"

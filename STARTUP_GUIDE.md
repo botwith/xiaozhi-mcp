@@ -106,10 +106,14 @@ sudo journalctl -u xiaozhi-mcp -n 50
 
 ## 注意事项
 
-1. **首次使用前修改路径**：
-   - 如果你的项目路径不同，请修改脚本中的 `PROJECT_DIR` 变量
-   - Shell 脚本：编辑 `xiaozhi-mcp.sh` 第 6 行
-   - Systemd：编辑 `xiaozhi-mcp.service` 中的路径
+1. **Shell 脚本**：
+   - ✅ 自动检测脚本所在目录作为项目路径，无需手动修改
+   - 直接把脚本放在项目根目录即可使用
+
+2. **Systemd 配置**：
+   - ⚠️ 需要手动修改 `xiaozhi-mcp.service` 中的占位符：
+     - `YOUR_USERNAME` → 替换为你的用户名
+     - `/path/to/xiaozhi-mcp` → 替换为实际项目路径
 
 2. **检查 uv 路径**：
    ```bash
