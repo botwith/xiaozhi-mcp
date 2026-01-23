@@ -4,8 +4,17 @@ import sys
 import logging
 from datetime import datetime
 from typing import Optional, Dict, List
-import yfinance as yf
 import time
+
+# Defer yfinance import to avoid slow startup (lazy import)
+_yfinance = None
+
+def get_yfinance():
+    """Lazy import yfinance to speed up server initialization."""
+    global _yfinance
+    if _yfinance is None:
+        import yfinance as _yfinance
+    return _yfinance
 
 logger = logging.getLogger('Stock')
 
@@ -45,7 +54,8 @@ def get_realtime_stock(symbol: str) -> Optional[Dict]:
             return cached_data
         
         logger.info(f"Fetching real-time data for {symbol}")
-        
+
+        yf = get_yfinance()
         # Fetch stock data using yfinance
         ticker = yf.Ticker(symbol)
         info = ticker.info
@@ -321,6 +331,7 @@ def get_stock_history(symbol: str, period: str = "1mo") -> dict:
     
     try:
         logger.info(f"Fetching stock history for {symbol}, period: {period}")
+        yf = get_yfinance()
         ticker = yf.Ticker(symbol)
         hist = ticker.history(period=period)
         
