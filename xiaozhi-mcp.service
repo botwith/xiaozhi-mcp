@@ -1,0 +1,21 @@
+[Unit]
+Description=XiaoZhi MCP Server
+After=network.target
+
+[Service]
+Type=simple
+User=luca
+WorkingDirectory=/home/luca/_projects/ai/xiaozhi/xiaozhi-mcp
+Environment=PATH=/home/luca/.local/bin:/usr/local/bin:/usr/bin:/bin
+ExecStart=/home/luca/.local/bin/uv run python src/app.py
+Restart=on-failure
+RestartSec=10
+StandardOutput=append:/home/luca/_projects/ai/xiaozhi/xiaozhi-mcp/app.log
+StandardError=append:/home/luca/_projects/ai/xiaozhi/xiaozhi-mcp/app.error.log
+
+# Security settings
+NoNewPrivileges=true
+PrivateTmp=true
+
+[Install]
+WantedBy=multi-user.target
